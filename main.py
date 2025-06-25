@@ -1,5 +1,4 @@
 import os
-import re
 import cv2
 import sys
 import paramiko
@@ -138,32 +137,33 @@ class RemoteConnection:
         return output
 
     def download_files(self, 
-                       remote_dir: str, 
-                       local_dir: str, 
-                       pattern: str = "*") -> None:
-        
+                   remote_dir: str, 
+                   local_dir: str, 
+                   pattern: str = "*") -> None:
+
         if not self._connected:
             self.ssh_connect()
 
         sftp = self._ssh.open_sftp()
         os.makedirs(local_dir, exist_ok=True)
 
-        try:
-            files = sftp.listdir(remote_dir)
-        except IOError as e:
-            print(f"❌ Ошибка доступа к {remote_dir}: {e}")
-            return
+        # Используем find для получения всех файлов с учетом pattern
+        extensions = [pattern.replace("*.", "")] if pattern.startswith("*.") else []
+        if pattern == "*":
+            extensions = ["*"]  # поддержка wildcard
+        matched_files = self.search_files(remote_dir, extensions)
 
-        matched_files = [f for f in files if self._match_pattern(f, pattern)]
+        # Фильтруем только нужные файлы
+        matched_files = [f for f in matched_files if self._match_pattern(os.path.basename(f), pattern)]
 
         total_bytes = 0
         file_sizes = {}
-        for filename in matched_files:
+
+        for remote_path in matched_files:
             try:
-                file_path = os.path.join(remote_dir, filename)
-                size = sftp.stat(file_path).st_size
+                size = sftp.stat(remote_path).st_size
                 total_bytes += size
-                file_sizes[filename] = size
+                file_sizes[remote_path] = size
             except IOError:
                 continue
 
@@ -173,8 +173,8 @@ class RemoteConnection:
 
         downloaded_bytes = 0
 
-        for filename in matched_files:
-            remote_path = os.path.join(remote_dir, filename)
+        for remote_path in matched_files:
+            filename = os.path.basename(remote_path)
             local_path = os.path.join(local_dir, filename)
 
             try:
@@ -188,10 +188,11 @@ class RemoteConnection:
                         downloaded_bytes += len(data)
                         self._print_progress_bar(downloaded_bytes, total_bytes, prefix="⬇️ Общая загрузка", bar_width=50)
             except IOError as e:
-                print(f"\n⚠️ Ошибка при скачивании {filename}: {e}")
+                print(f"\n⚠️ Ошибка при скачивании {remote_path}: {e}")
 
-        print()  # Переход на новую строку
+        print()
         sftp.close()
+
 
 
 
@@ -265,6 +266,6 @@ if __name__ == "__main__":
         print(f)
 
     ssh.download_files(remote_dir="/home/rnf/dev/ros2_iiwa_realsense_camera/images",
-                       local_dir="/home/daniel/dev/docker_dev/web_service/calibration_module/images",
+                       local_dir="./images",
                        pattern="*")
     
