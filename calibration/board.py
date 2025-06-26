@@ -375,7 +375,7 @@ if __name__ == "__main__":
 
 
     # circle board
-    circle_board = CircleGridBoard(
+    circle_board = CircleBoard(
         squares_x=5,
         squares_y=7,
         square_length_mm=20,
