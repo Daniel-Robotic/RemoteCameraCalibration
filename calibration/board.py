@@ -89,13 +89,11 @@ class CalibrationBoard(ABC):
         board_w_px = int(self.squares_x * self.square_length_mm * px_per_mm)
         board_h_px = int(self.squares_y * self.square_length_mm * px_per_mm)
 
-        # Масштабируем под ширину холста
         scale = canvas_w_px / board_w_px
         scaled_w = canvas_w_px
         scaled_h = int(board_h_px * scale)
 
         if scaled_h > canvas_h_px:
-            # Если высота вышла за пределы — пересчитываем под высоту
             scale = canvas_h_px / board_h_px
             scaled_w = int(board_w_px * scale)
             scaled_h = canvas_h_px
@@ -256,7 +254,7 @@ class Checkerboard(CalibrationBoard):
 
     
 
-class CircleGridBoard(CalibrationBoard):
+class CircleBoard(CalibrationBoard):
     def __init__(self,
                  squares_x: int,
                  squares_y: int,
@@ -324,7 +322,7 @@ class PDFExporter:
         fig_h_inch = paper_h_mm / 25.4
 
         fig = plt.figure(figsize=(fig_w_inch, fig_h_inch), dpi=dpi)
-        ax = fig.add_axes([0, 0, 1, 1])  # без отступов
+        ax = fig.add_axes([0, 0, 1, 1]) 
         ax.axis('off')
 
         ax.imshow(canvas, cmap='gray', extent=(0, fig_w_inch, 0, fig_h_inch), aspect='auto')
@@ -340,8 +338,8 @@ class PDFExporter:
 if __name__ == "__main__":
     # Charuco доска
     charuco_board = CharucoBoard(
-        squares_x=6,
-        squares_y=8,
+        squares_x=5,
+        squares_y=7,
         square_length_mm=20,
         marker_length_mm=13,
         dpi=300,
@@ -350,9 +348,6 @@ if __name__ == "__main__":
     )
 
     charuco_image = charuco_board.generate()
-
-    charuco_image = charuco_board.generate()
-    cv2.imwrite("charuco_debug.png", charuco_image)
     
     # Aruco доска
     aruco_board = ArucoBoard(
@@ -367,6 +362,31 @@ if __name__ == "__main__":
 
     aruco_image = aruco_board.generate()
 
+    # ckeckerboard
+    ckeckerboard = Checkerboard(
+        squares_x=5,
+        squares_y=7,
+        square_length_mm=20,
+        dpi=300,
+        paper_size="A4"
+    )
+
+    ckeckerboard_image = ckeckerboard.generate()
+
+
+    # circle board
+    circle_board = CircleGridBoard(
+        squares_x=5,
+        squares_y=7,
+        square_length_mm=20,
+        dpi=300,
+        paper_size="A4",
+        asymmetric=True
+    )
+
+    circle_image = circle_board.generate()
+
+
     # Экспорт в PDF
     exporter = PDFExporter()
     pdf_bytes = exporter(canvas=charuco_image, paper_size="A4", dpi=150, paper_sizes=charuco_board.PAPER_SIZES)
@@ -376,4 +396,12 @@ if __name__ == "__main__":
         
     pdf_bytes = exporter(canvas=aruco_image, paper_size="A4", dpi=150, paper_sizes=aruco_board.PAPER_SIZES)
     with open("aruco_board.pdf", "wb") as f:
+        f.write(pdf_bytes.getvalue())
+
+    pdf_bytes = exporter(canvas=ckeckerboard_image, paper_size="A4", dpi=150, paper_sizes=ckeckerboard.PAPER_SIZES)
+    with open("cheker_board.pdf", "wb") as f:
+        f.write(pdf_bytes.getvalue())
+
+    pdf_bytes = exporter(canvas=circle_image, paper_size="A4", dpi=150, paper_sizes=circle_board.PAPER_SIZES)
+    with open("circle_board.pdf", "wb") as f:
         f.write(pdf_bytes.getvalue())

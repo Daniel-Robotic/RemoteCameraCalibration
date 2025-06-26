@@ -2,10 +2,19 @@ import pytest
 import numpy as np
 from io import BytesIO
 
-from calibration import Checkerboard, CircleGridBoard, CharucoBoard, ArucoBoard, PDFExporter
+# Импортируй свой модуль (замените 'your_module' на имя файла, например, calibration.py)
+from calibration import (
+    CharucoBoard,
+    ArucoBoard,
+    Checkerboard,
+    CircleBoard,
+    PDFExporter
+)
 
+# ---------------------------
+# Тесты для базового класса CalibrationBoard
+# ---------------------------
 
-# Тестирование базового класса CalibrationBoard через Checkerboard
 def test_calibration_board_init():
     board = Checkerboard(squares_x=7, squares_y=5, square_length_mm=20, dpi=300, paper_size="A4")
     assert board.squares_x == 7
@@ -14,37 +23,27 @@ def test_calibration_board_init():
     assert board.dpi == 300
     assert board.paper_size == "A4"
 
-
 def test_invalid_squares_x():
     with pytest.raises(ValueError):
         Checkerboard(squares_x=1, squares_y=5, square_length_mm=20, dpi=300, paper_size="A4")
-
 
 def test_invalid_square_length_mm():
     with pytest.raises(ValueError):
         Checkerboard(squares_x=5, squares_y=5, square_length_mm=-10, dpi=300, paper_size="A4")
 
-
 def test_invalid_dpi():
     with pytest.raises(ValueError):
         Checkerboard(squares_x=5, squares_y=5, square_length_mm=20, dpi=30, paper_size="A4")
 
-
 def test_invalid_paper_size():
     with pytest.raises(ValueError):
-        Checkerboard(squares_x=5, squares_y=5, square_length_mm=20, dpi=300, paper_size="A0")
+        Checkerboard(squares_x=5, squares_y=5, square_length_mm=20, dpi=300, paper_size="InvalidSize")
 
 
-# Тестирование метода generate у Checkerboard
-def test_checkerboard_generate():
-    board = Checkerboard(squares_x=8, squares_y=6, square_length_mm=20, dpi=72, paper_size="A4")
-    image = board.generate()
-    assert isinstance(image, np.ndarray)
-    assert len(image.shape) == 2  # grayscale
-    assert image.dtype == np.uint8
+# ---------------------------
+# Тесты для CharucoBoard
+# ---------------------------
 
-
-# Тестирование CharucoBoard
 def test_charuco_board_generate():
     charuco = CharucoBoard(
         squares_x=7,
@@ -57,9 +56,8 @@ def test_charuco_board_generate():
     )
     image = charuco.generate()
     assert isinstance(image, np.ndarray)
-    assert len(image.shape) == 2
+    assert len(image.shape) == 2  # grayscale
     assert image.dtype == np.uint8
-
 
 def test_invalid_marker_length_mm():
     with pytest.raises(ValueError):
@@ -71,7 +69,6 @@ def test_invalid_marker_length_mm():
             dpi=72,
             paper_size="A4"
         )
-
 
 def test_invalid_aruco_dict_name():
     with pytest.raises(ValueError):
@@ -86,7 +83,10 @@ def test_invalid_aruco_dict_name():
         )
 
 
-# Тестирование ArucoBoard
+# ---------------------------
+# Тесты для ArucoBoard
+# ---------------------------
+
 def test_aruco_board_generate():
     aruco_board = ArucoBoard(
         squares_x=4,
@@ -102,18 +102,7 @@ def test_aruco_board_generate():
     assert len(image.shape) == 2
     assert image.dtype == np.uint8
 
-
 def test_invalid_marker_length_ratio():
-    with pytest.raises(ValueError):
-        ArucoBoard(
-            squares_x=4,
-            squares_y=4,
-            square_length_mm=30,
-            marker_length_ratio=-0.1,
-            dpi=72,
-            paper_size="A4"
-        )
-
     with pytest.raises(ValueError):
         ArucoBoard(
             squares_x=4,
@@ -124,8 +113,17 @@ def test_invalid_marker_length_ratio():
             paper_size="A4"
         )
 
+    with pytest.raises(ValueError):
+        ArucoBoard(
+            squares_x=4,
+            squares_y=4,
+            square_length_mm=30,
+            marker_length_ratio=-0.1,
+            dpi=72,
+            paper_size="A4"
+        )
 
-def test_invalid_aruco_dict_name_in_aruco_board():
+def test_invalid_aruco_dict_in_aruco_board():
     with pytest.raises(ValueError):
         ArucoBoard(
             squares_x=4,
@@ -138,9 +136,24 @@ def test_invalid_aruco_dict_name_in_aruco_board():
         )
 
 
-# Тестирование CircleGridBoard
+# ---------------------------
+# Тесты для Checkerboard
+# ---------------------------
+
+def test_checkerboard_generate():
+    board = Checkerboard(squares_x=8, squares_y=6, square_length_mm=20, dpi=72, paper_size="A4")
+    image = board.generate()
+    assert isinstance(image, np.ndarray)
+    assert len(image.shape) == 2
+    assert image.dtype == np.uint8
+
+
+# ---------------------------
+# Тесты для CircleBoard
+# ---------------------------
+
 def test_circle_grid_board_generate():
-    circle_board = CircleGridBoard(
+    circle_board = CircleBoard(
         squares_x=4,
         squares_y=3,
         square_length_mm=20,
@@ -152,9 +165,8 @@ def test_circle_grid_board_generate():
     assert len(image.shape) == 2
     assert image.dtype == np.uint8
 
-
 def test_circle_grid_asymmetric():
-    circle_board = CircleGridBoard(
+    circle_board = CircleBoard(
         squares_x=4,
         squares_y=3,
         square_length_mm=20,
@@ -166,7 +178,10 @@ def test_circle_grid_asymmetric():
     assert isinstance(image, np.ndarray)
 
 
-# Тестирование PDFExporter
+# ---------------------------
+# Тесты для PDFExporter
+# ---------------------------
+
 def test_pdf_exporter():
     board = Checkerboard(squares_x=8, squares_y=6, square_length_mm=20, dpi=72, paper_size="A4")
     canvas = board.generate()
@@ -176,7 +191,6 @@ def test_pdf_exporter():
 
     assert isinstance(pdf_bytes, BytesIO)
     assert pdf_bytes.getbuffer().nbytes > 0
-
 
 def test_pdf_export_invalid_paper_size():
     board = Checkerboard(squares_x=8, squares_y=6, square_length_mm=20, dpi=72, paper_size="A4")

@@ -147,13 +147,11 @@ class RemoteConnection:
         sftp = self._ssh.open_sftp()
         os.makedirs(local_dir, exist_ok=True)
 
-        # Используем find для получения всех файлов с учетом pattern
         extensions = [pattern.replace("*.", "")] if pattern.startswith("*.") else []
         if pattern == "*":
             extensions = ["*"]  # поддержка wildcard
         matched_files = self.search_files(remote_dir, extensions)
 
-        # Фильтруем только нужные файлы
         matched_files = [f for f in matched_files if self._match_pattern(os.path.basename(f), pattern)]
 
         total_bytes = 0
