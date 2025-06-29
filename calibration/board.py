@@ -340,8 +340,8 @@ if __name__ == "__main__":
     charuco_board = CharucoBoard(
         squares_x=5,
         squares_y=7,
-        square_length_mm=20,
-        marker_length_mm=13,
+        square_length_mm=40,
+        marker_length_mm=25,
         dpi=300,
         paper_size="A4",
         aruco_dict_name="5x5_250"
@@ -351,11 +351,11 @@ if __name__ == "__main__":
     
     # Aruco доска
     aruco_board = ArucoBoard(
-        squares_x=3,
-        squares_y=5,
-        square_length_mm=30,
+        squares_x=5,
+        squares_y=7,
+        square_length_mm=40,
         marker_length_ratio=0.75,
-        dpi=150,
+        dpi=300,
         paper_size="A4",
         aruco_dict_name="4x4_50"
     )
@@ -366,7 +366,7 @@ if __name__ == "__main__":
     ckeckerboard = Checkerboard(
         squares_x=5,
         squares_y=7,
-        square_length_mm=20,
+        square_length_mm=40,
         dpi=300,
         paper_size="A4"
     )
@@ -378,7 +378,7 @@ if __name__ == "__main__":
     circle_board = CircleBoard(
         squares_x=5,
         squares_y=7,
-        square_length_mm=20,
+        square_length_mm=40,
         dpi=300,
         paper_size="A4",
         asymmetric=True
@@ -386,22 +386,38 @@ if __name__ == "__main__":
 
     circle_image = circle_board.generate()
 
+    # circle board
+    circle_board = CircleBoard(
+        squares_x=5,
+        squares_y=7,
+        square_length_mm=40,
+        dpi=300,
+        paper_size="A4",
+        asymmetric=False
+    )
+
+    circle_image2 = circle_board.generate()
+
 
     # Экспорт в PDF
     exporter = PDFExporter()
-    pdf_bytes = exporter(canvas=charuco_image, paper_size="A4", dpi=150, paper_sizes=charuco_board.PAPER_SIZES)
+    pdf_bytes = exporter(canvas=charuco_image, paper_size="A4", dpi=300, paper_sizes=charuco_board.PAPER_SIZES)
 
     with open("charuco_board.pdf", "wb") as f:
         f.write(pdf_bytes.getvalue())
         
-    pdf_bytes = exporter(canvas=aruco_image, paper_size="A4", dpi=150, paper_sizes=aruco_board.PAPER_SIZES)
+    pdf_bytes = exporter(canvas=aruco_image, paper_size="A4", dpi=300, paper_sizes=aruco_board.PAPER_SIZES)
     with open("aruco_board.pdf", "wb") as f:
         f.write(pdf_bytes.getvalue())
 
-    pdf_bytes = exporter(canvas=ckeckerboard_image, paper_size="A4", dpi=150, paper_sizes=ckeckerboard.PAPER_SIZES)
+    pdf_bytes = exporter(canvas=ckeckerboard_image, paper_size="A4", dpi=300, paper_sizes=ckeckerboard.PAPER_SIZES)
     with open("cheker_board.pdf", "wb") as f:
         f.write(pdf_bytes.getvalue())
 
-    pdf_bytes = exporter(canvas=circle_image, paper_size="A4", dpi=150, paper_sizes=circle_board.PAPER_SIZES)
-    with open("circle_board.pdf", "wb") as f:
+    pdf_bytes = exporter(canvas=circle_image, paper_size="A4", dpi=300, paper_sizes=circle_board.PAPER_SIZES)
+    with open("circle_board_asym.pdf", "wb") as f:
+        f.write(pdf_bytes.getvalue())
+
+    pdf_bytes = exporter(canvas=circle_image2, paper_size="A4", dpi=300, paper_sizes=circle_board.PAPER_SIZES)
+    with open("circle_board_sym.pdf", "wb") as f:
         f.write(pdf_bytes.getvalue())

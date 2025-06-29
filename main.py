@@ -264,6 +264,6 @@ if __name__ == "__main__":
         print(f)
 
     ssh.download_files(remote_dir="/home/rnf/dev/ros2_iiwa_realsense_camera/images",
-                       local_dir="./images",
+                       local_dir="/home/daniel/dev/docker_dev/web_service/calibration_module/images/aruco",
                        pattern="*")
     
