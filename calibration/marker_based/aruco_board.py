@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 from cv2 import aruco
 from pathlib import Path
@@ -126,3 +127,21 @@ class ArucoBoardCalibrator(ArucoMarkerCalibrator):
         }
 
         return self._calibration_result
+
+    @ArucoMarkerCalibrator._handeye_calibration_decorator
+    def handeye_calibrate(self, image):
+        found, corners, ids = self.find_corners(image)
+        
+        if not found:
+            return None
+        
+        found, rvec, tvec = aruco.estimatePoseBoard(
+            corners, ids, self._board,
+            self._calibration_result["matrix"], 
+            self._calibration_result["distortion"], 
+            None, None)
+        
+        if found:
+            return cv2.Rodrigues(rvec)[0], tvec
+        
+        return None

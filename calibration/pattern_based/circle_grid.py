@@ -3,7 +3,7 @@ import numpy as np
 from pathlib import Path
 from typing import Tuple, Union
 
-from calibration.types import ObjectPoints, FindCornersResult
+from calibration.types import FindCornersResult
 from calibration import PatternBasedCalibrator
 
 
@@ -18,7 +18,10 @@ class CircleGridCalibrator(PatternBasedCalibrator):
         """
         Circle grid calibrator supporting symmetric and asymmetric patterns.
 
-        :param image_folder: Path to folder with images
+        :param image_folder: Path to folder with imagesfrom ..calibration import (ChessboardCalibrator, 
+                        CircleGridCalibrator, 
+                        ArucoBoardCalibrator,
+                        CharucoBoardCalibrator)
         :param pattern_size: Tuple (cols, rows) of the circle grid
         :param pattern_length_mm: Distance between circle centers in millimeters
         :param asymmetric: Whether the grid is asymmetric
@@ -39,33 +42,34 @@ class CircleGridCalibrator(PatternBasedCalibrator):
             raise ValueError("asymmetric must be a boolean")
         self._asymmetric = value
 
-    def _prepare_3d_points(self) -> ObjectPoints:
-        """
-        Generates 3D object points based on circle grid geometry.
+    # TODO: Необходимо почитать подробнее про калибровку маркеров
+    # def _prepare_3d_points(self) -> ObjectPoints:
+    #     """
+    #     Generates 3D object points based on circle grid geometry.
 
-        :return: (N, 3) float32 numpy array of 3D points
-        """
-        width, height = self._pattern_size
+    #     :return: (N, 3) float32 numpy array of 3D points
+    #     """
+    #     width, height = self._pattern_size
 
-        if self._asymmetric:
-            object_points = []
-            for row in range(height):
-                for col in range(width):
-                    x = col * self._pattern_length
-                    y = row * self._pattern_length
+    #     if self._asymmetric:
+    #         object_points = []
+    #         for row in range(height):
+    #             for col in range(width):
+    #                 x = col * self._pattern_length
+    #                 y = row * self._pattern_length
 
-                    # Stagger every second row for asymmetric pattern
-                    if row % 2 == 1:
-                        x += self._pattern_length / 2
+    #                 # Stagger every second row for asymmetric pattern
+    #                 if row % 2 == 1:
+    #                     x += self._pattern_length / 2
 
-                    object_points.append([x, y, 0])
-            return np.array(object_points, dtype=np.float32)
-        else:
-            objp = np.zeros((height * width, 3), dtype=np.float32)
-            objp[:, :2] = (
-                np.mgrid[0:width, 0:height].T.reshape(-1, 2) * self._pattern_length
-            )
-            return objp
+    #                 object_points.append([x, y, 0])
+    #         return np.array(object_points, dtype=np.float32)
+    #     else:
+    #         objp = np.zeros((height * width, 3), dtype=np.float32)
+    #         objp[:, :2] = (
+    #             np.mgrid[0:width, 0:height].T.reshape(-1, 2) * self._pattern_length
+    #         )
+    #         return objp
 
     def find_corners(self, image: np.ndarray) -> FindCornersResult:
         """
@@ -87,7 +91,7 @@ class CircleGridCalibrator(PatternBasedCalibrator):
             flags = cv2.CALIB_CB_ASYMMETRIC_GRID
 
         found, corners = cv2.findCirclesGrid(image, self._pattern_size, None, flags)
-
+        
         if found and corners is not None:
             corners = cv2.cornerSubPix(image, corners, (11, 11), (-1, -1), criteria)
             return True, corners

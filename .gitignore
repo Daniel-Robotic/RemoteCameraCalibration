@@ -12,6 +12,10 @@ wheels/
 
 # Folders
 images
+.vscode
 
 # Files
 *.pdf
+*.txt
+*.json
+*.npz

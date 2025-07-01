@@ -48,8 +48,8 @@ class ArucoMarkerCalibrator(CameraBaseCalibrator):
 
         self._aruco_dict_name = ""
         self._aruco_dict = None
-        self.aruco_dict = aruco_dict_name  # calls setter
-        self.marker_length_mm = marker_length_mm  # calls setter
+        self.aruco_dict = aruco_dict_name
+        self.marker_length_mm = marker_length_mm
 
         self._params = aruco.DetectorParameters()
         self._detector = aruco.ArucoDetector(self._aruco_dict, self._params)
@@ -100,6 +100,7 @@ class ArucoMarkerCalibrator(CameraBaseCalibrator):
         """
         raise NotImplementedError("Calibration must be implemented in a derived class.")
 
+
     def _preprocess_images(
         self,
         error_msg: str,
@@ -149,3 +150,4 @@ class ArucoMarkerCalibrator(CameraBaseCalibrator):
             raise ValueError(error_msg)
 
         return all_corners, all_ids, counter, img_size
+    

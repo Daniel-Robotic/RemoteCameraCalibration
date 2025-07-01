@@ -95,6 +95,7 @@ class PatternBasedCalibrator(CameraBaseCalibrator):
             gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 
             found, corners = self.find_corners(gray)
+
             if found and corners is not None:
                 object_points.append(objps.copy())
                 image_points.append(corners)
@@ -152,3 +153,21 @@ class PatternBasedCalibrator(CameraBaseCalibrator):
         }
 
         return self._calibration_result
+    
+    @CameraBaseCalibrator._handeye_calibration_decorator
+    def handeye_calibrate(self, image):
+        found, corners = self.find_corners(image)
+        obj_points = self._prepare_3d_points()
+
+        if not found:
+            return None
+        
+        ret, rvec, tvec = cv2.solvePnP(obj_points,
+                                       corners,
+                                       self._calibration_result["matrix"],
+                                       self._calibration_result["distortion"])
+
+        if ret:
+            return cv2.Rodrigues(rvec)[0], tvec
+
+        return None
