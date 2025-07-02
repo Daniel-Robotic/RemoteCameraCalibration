@@ -335,7 +335,10 @@ class CameraBaseCalibrator:
     @staticmethod
     def _handeye_calibration_decorator(method):
 
-        def wrapper(self, gripper_poses: List[Tuple], pattern: str="*"):
+        def wrapper(self, 
+                    gripper_poses: List[Tuple], 
+                    pattern: str="*",
+                    calib_method: str="DANIILIDIS"):
             
             if self._calibration_result is None:
                 raise ValueError("Camera calibration must be performed first")
@@ -358,7 +361,7 @@ class CameraBaseCalibrator:
             t_gripper2base = []
             R_target2cam = []
             t_target2cam = []
-
+            
             for img, pose in zip(images, gripper_poses):
                 if isinstance(img, (str, Path)):
                     img = cv2.imread(str(img))
@@ -384,12 +387,37 @@ class CameraBaseCalibrator:
             if len(R_gripper2base) < 5:
                 raise ValueError(f"Insufficient valid samples: {len(R_gripper2base)}/5")
             
+            method_map = {
+                "DANIILIDIS": "CALIB_HAND_EYE_DANIILIDIS",
+                "PARK": "CALIB_HAND_EYE_PARK",
+                "TSAI": "CALIB_HAND_EYE_TSAI",
+                "ANDREFF": "CALIB_HAND_EYE_ANDREFF",
+                "HORAUD": "CALIB_HAND_EYE_HORAUD"
+            }
+
+            method_upper = calib_method.upper()
+            if method_upper not in method_map:
+                raise ValueError(f"Unknown hand-eye calibration method '{method}'. "
+                                f"Available: {list(method_map.keys())}")
+
+            cv2_enum_name = method_map[method_upper]
+
+            if not hasattr(cv2, cv2_enum_name):
+                available = [k for k, v in method_map.items() if hasattr(cv2, v)]
+                raise RuntimeError(
+                    f"Your OpenCV version does not support method '{method}' "
+                    f"(cv2.{cv2_enum_name} not found).\n"
+                    f"Available in your build: {available}"
+                )
+
+            method_enum = getattr(cv2, cv2_enum_name)
+
             return cv2.calibrateHandEye(
                 R_gripper2base=R_gripper2base,
                 t_gripper2base=t_gripper2base,
                 R_target2cam=R_target2cam,
                 t_target2cam=t_target2cam,
-                method=cv2.CALIB_HAND_EYE_HORAUD
+                method=method_enum
             )
         
         return wrapper

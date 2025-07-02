@@ -5,8 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
-    "matplotlib>=3.10.3",
     "numpy>=2.3.1",
     "opencv-contrib-python>=4.11.0.86",
     "paramiko>=3.5.1",
+    "reportlab>=4.4.2",
 ]

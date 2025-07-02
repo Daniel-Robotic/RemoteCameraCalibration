@@ -89,28 +89,35 @@ class CalibrationBoard(ABC):
         board_w_px = int(self.squares_x * self.square_length_mm * px_per_mm)
         board_h_px = int(self.squares_y * self.square_length_mm * px_per_mm)
 
-        scale = canvas_w_px / board_w_px
-        scaled_w = canvas_w_px
-        scaled_h = int(board_h_px * scale)
+        # scale = canvas_w_px / board_w_px
+        # scaled_w = canvas_w_px
+        # scaled_h = int(board_h_px * scale)
 
-        if scaled_h > canvas_h_px:
-            scale = canvas_h_px / board_h_px
-            scaled_w = int(board_w_px * scale)
-            scaled_h = canvas_h_px
+        # if scaled_h > canvas_h_px:
+        #     scale = canvas_h_px / board_h_px
+        #     scaled_w = int(board_w_px * scale)
+        #     scaled_h = canvas_h_px
 
         canvas = 255 * np.ones((canvas_h_px, canvas_w_px), dtype=np.uint8)
-        return canvas, scaled_w, scaled_h
+        return canvas
 
     def generate(self) -> np.ndarray:
-        canvas, board_w_px, board_h_px = self._compute_canvas_and_scale()
-        board_img = self._generate_board_image(board_w_px, board_h_px)
+        canvas = self._compute_canvas_and_scale()
+        board_img = self._generate_board_image(
+            int(self.squares_x * self.square_length_mm * (self.dpi / 25.4)),
+            int(self.squares_y * self.square_length_mm * (self.dpi / 25.4))
+        )
 
-        board_img = cv2.resize(board_img, (board_w_px, board_h_px), interpolation=cv2.INTER_NEAREST)
+        # Получаем размеры изображения доски
+        board_h_px, board_w_px = board_img.shape[:2]
 
-        offset_x = (canvas.shape[1] - board_img.shape[1]) // 2
-        offset_y = (canvas.shape[0] - board_img.shape[0]) // 2
+        # Вычисляем отступы для центрирования
+        offset_x = (canvas.shape[1] - board_w_px) // 2
+        offset_y = (canvas.shape[0] - board_h_px) // 2
 
+        # Копируем изображение доски на холст без растяжения
         canvas[offset_y:offset_y + board_h_px, offset_x:offset_x + board_w_px] = board_img
+
         return canvas
 
     
@@ -325,7 +332,7 @@ class PDFExporter:
         ax = fig.add_axes([0, 0, 1, 1]) 
         ax.axis('off')
 
-        ax.imshow(canvas, cmap='gray', extent=(0, fig_w_inch, 0, fig_h_inch), aspect='auto')
+        ax.imshow(canvas, cmap='gray', )
 
         buf = BytesIO()
         plt.savefig(buf, format='pdf', dpi=dpi, bbox_inches=None, pad_inches=0)
@@ -340,11 +347,11 @@ if __name__ == "__main__":
     charuco_board = CharucoBoard(
         squares_x=5,
         squares_y=7,
-        square_length_mm=40,
-        marker_length_mm=25,
-        dpi=300,
-        paper_size="A4",
-        aruco_dict_name="5x5_250"
+        square_length_mm=55,
+        marker_length_mm=40,
+        dpi=600,
+        paper_size="A3",
+        aruco_dict_name="4x4_50"
     )
 
     charuco_image = charuco_board.generate()
@@ -353,10 +360,10 @@ if __name__ == "__main__":
     aruco_board = ArucoBoard(
         squares_x=5,
         squares_y=7,
-        square_length_mm=40,
+        square_length_mm=55,
         marker_length_ratio=0.75,
-        dpi=300,
-        paper_size="A4",
+        dpi=600,
+        paper_size="A3",
         aruco_dict_name="4x4_50"
     )
 
@@ -366,9 +373,9 @@ if __name__ == "__main__":
     ckeckerboard = Checkerboard(
         squares_x=5,
         squares_y=7,
-        square_length_mm=40,
-        dpi=300,
-        paper_size="A4"
+        square_length_mm=55,
+        dpi=600,
+        paper_size="A3"
     )
 
     ckeckerboard_image = ckeckerboard.generate()
@@ -378,9 +385,9 @@ if __name__ == "__main__":
     circle_board = CircleBoard(
         squares_x=5,
         squares_y=7,
-        square_length_mm=40,
-        dpi=300,
-        paper_size="A4",
+        square_length_mm=55,
+        dpi=600,
+        paper_size="A3",
         asymmetric=True
     )
 
@@ -390,9 +397,9 @@ if __name__ == "__main__":
     circle_board = CircleBoard(
         squares_x=5,
         squares_y=7,
-        square_length_mm=40,
-        dpi=300,
-        paper_size="A4",
+        square_length_mm=55,
+        dpi=600,
+        paper_size="A3",
         asymmetric=False
     )
 
@@ -401,23 +408,23 @@ if __name__ == "__main__":
 
     # Экспорт в PDF
     exporter = PDFExporter()
-    pdf_bytes = exporter(canvas=charuco_image, paper_size="A4", dpi=300, paper_sizes=charuco_board.PAPER_SIZES)
+    pdf_bytes = exporter(canvas=charuco_image, paper_size="A3", dpi=300, paper_sizes=charuco_board.PAPER_SIZES)
 
     with open("charuco_board.pdf", "wb") as f:
         f.write(pdf_bytes.getvalue())
         
-    pdf_bytes = exporter(canvas=aruco_image, paper_size="A4", dpi=300, paper_sizes=aruco_board.PAPER_SIZES)
+    pdf_bytes = exporter(canvas=aruco_image, paper_size="A3", dpi=300, paper_sizes=aruco_board.PAPER_SIZES)
     with open("aruco_board.pdf", "wb") as f:
         f.write(pdf_bytes.getvalue())
 
-    pdf_bytes = exporter(canvas=ckeckerboard_image, paper_size="A4", dpi=300, paper_sizes=ckeckerboard.PAPER_SIZES)
+    pdf_bytes = exporter(canvas=ckeckerboard_image, paper_size="A3", dpi=300, paper_sizes=ckeckerboard.PAPER_SIZES)
     with open("cheker_board.pdf", "wb") as f:
         f.write(pdf_bytes.getvalue())
 
-    pdf_bytes = exporter(canvas=circle_image, paper_size="A4", dpi=300, paper_sizes=circle_board.PAPER_SIZES)
+    pdf_bytes = exporter(canvas=circle_image, paper_size="A3", dpi=300, paper_sizes=circle_board.PAPER_SIZES)
     with open("circle_board_asym.pdf", "wb") as f:
         f.write(pdf_bytes.getvalue())
 
-    pdf_bytes = exporter(canvas=circle_image2, paper_size="A4", dpi=300, paper_sizes=circle_board.PAPER_SIZES)
+    pdf_bytes = exporter(canvas=circle_image2, paper_size="A3", dpi=300, paper_sizes=circle_board.PAPER_SIZES)
     with open("circle_board_sym.pdf", "wb") as f:
         f.write(pdf_bytes.getvalue())
