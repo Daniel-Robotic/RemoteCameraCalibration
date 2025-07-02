@@ -5,9 +5,17 @@ build/
 dist/
 wheels/
 *.egg-info
+.pytest_cache
 
 # Virtual environments
 .venv
 
 # Folders
 images
+.vscode
+
+# Files
+*.pdf
+*.txt
+*.json
+*.npz
